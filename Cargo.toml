@@ -1,0 +1,16 @@
+[package]
+name = "home"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+cortex-m="0.7.4"
+cortex-m-rt="0.7.1"
+stm32h7xx-hal = {version = "0.11.0", features = ["stm32h743v","rt"]}
+cfg-if = "1.0.0"
+utilities={path="./utilities"}
+[toolchain]
+channel = "nightly"
+#要加rustup target add thumbv7em-none-eabihf
