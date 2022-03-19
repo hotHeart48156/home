@@ -2,16 +2,16 @@
 #![no_main]
 #![feature(alloc_error_handler)]
 extern crate alloc;
-use core::panic::PanicInfo;
 use alloc::vec::Vec;
+use core::alloc::Layout;
+use core::cell::UnsafeCell;
+use core::panic::PanicInfo;
+use cortex_m::asm;
 use cortex_m_rt::entry;
+use home::bump_alloc::BumpPointerAlloc;
 use stm32h7xx_hal::hal::digital::v2::OutputPin;
 use stm32h7xx_hal::{pac, prelude::*};
 use utilities::config;
-use core::alloc::Layout;
-use cortex_m::asm;
-use core::cell::UnsafeCell;
-use home::bump_alloc::BumpPointerAlloc;
 #[alloc_error_handler]
 fn on_oom(_layout: Layout) -> ! {
     asm::bkpt();
@@ -23,7 +23,7 @@ static HEAP: BumpPointerAlloc = BumpPointerAlloc {
     end: 0x2000_0200,
 };
 #[panic_handler]
-fn cortex_panic_handler(_panic:&PanicInfo)-> ! {
+fn cortex_panic_handler(_panic: &PanicInfo) -> ! {
     loop {}
 }
 macro_rules! example_power {
@@ -41,7 +41,7 @@ macro_rules! example_power {
 }
 
 #[entry]
-fn main()  -> !{
+fn main() -> ! {
     // let cp=cortex_m::Peripherals::take().unwrap();
     // let dp = pac::Peripherals::take().unwrap();
     // let pwr = dp.PWR.constrain();
@@ -61,19 +61,14 @@ fn main()  -> !{
     //     }
     // }
     #[config]
-    const device:DeviceConf=DeviceConf{
-        system_clock:32,
-        gpios:Some(
-            Vec(
-                GpioConf{
-                    name:"light",
-                    gpio:"gpioe",
-                    mode:GpioMode::PushPull
-                }
-            )
-        )
+    const device: DeviceConf = DeviceConf {
+        system_clock: 32,
+        gpios: Some(Vec(GpioConf {
+            name: "light",
+            gpio: "gpioe",
+            mode: GpioMode::PushPull,
+        }
+    )),
     };
-    loop {
-        
-    }
+    loop {}
 }
