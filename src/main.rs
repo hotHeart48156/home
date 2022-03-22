@@ -12,7 +12,6 @@ use cortex_m_rt::entry;
 use home::bump_alloc::BumpPointerAlloc;
 use stm32h7xx_hal::hal::digital::v2::OutputPin;
 use stm32h7xx_hal::{pac, prelude::*};
-use utilities::config;
 #[alloc_error_handler]
 fn on_oom(_layout: Layout) -> ! {
     asm::bkpt();
@@ -40,24 +39,6 @@ macro_rules! example_power {
         }
     }};
 }
-macro_rules! time {
-    ($FREQ:expr) => {
-        static cp=cortex_m::Peripherals::take().unwrap();
-        static dp = pac::Peripherals::take().unwrap();
-        static pwr = dp.PWR.constrain();
-        static rcc = dp.RCC.constrain();
-        
-        static pwrcfg = pwr.freeze();
-        // let ccdr = rcc.sys_ck($FREQ.mhz()).freeze(pwrcfg, &dp.SYSCFG);  
-    };
-}
-macro_rules! gpio {
-    () => {
-    let gpioe = &dp.GPIOE.split(ccdr.peripheral.GPIOE);
-    // let mut led= gpioe.pe1.into_push_pull_output();
-    // let mut delay = cp.SYST.delay(ccdr.clocks);
-    };
-}
 static COUNTER: Mutex<RefCell<Option<cortex_m::Peripherals>>> = Mutex::new(RefCell::new(Option::None));
 #[entry]
 fn main() -> ! {
@@ -80,23 +61,7 @@ fn main() -> ! {
     //         delay.delay_ms(500_u16);
     //     }
     // }
-    #[config]
-    const device:_ = DeviceConf {
-        system_clock: 32,
-        gpios: Some(Vec(
-            GpioConf {
-            name: "light",
-            gpio_group: "gpioe",
-            gpio_pin:3,
-            mode: GpioMode::PushPull,
-        },
-        GpioConf {
-            name: "light",
-            gpio_group: "gpioe",
-            gpio_pin:3,
-            mode: GpioMode::PushPull,
-        }
-    )),
-    };
-    loop {}
-}
+    loop {
+        
+    }
+    }

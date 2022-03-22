@@ -22,9 +22,9 @@ fn gpio(input:tokenstream)->tokenstream{
     gpio_expand()
 }
 #[proc_macro]
-fn searil(input:tokenstream)->tokenstream{
+fn serial(input:tokenstream)->tokenstream{
 //todo 生成静态的usart变量，初始化时钟变量的函数
-      searil_expand()
+      serial_expand()
 }
 #[proc_macro_attribute]
 fn init(){
@@ -65,3 +65,31 @@ usage:
          // home::time_init();由init完成调用
          // home::led_init()
      }
+|proc-macro::TokenStream| proc_macro宏就是要初始的就是stream|不能解析内容|直接返回|
+
+
+|proc-macro2::TokenStream|生成:proc-macro::TokenStream，|由以下可以生成|可以解析成vec<TokenTree>数组，通过遍历解析，可以解析括号|不能解析括号的类型|
+let buf = ts.clone().into_iter().collect::<Vec<_>>();
+通过into生成proc-macro::TokenStream
+
+
+|syn::ParseStream|syn把proc-macro::TokenStream，变为ParseStream|可以解析内容|parse只能解析连续的用空格分开的，不能解析括号|可以用peek查看后面的token，不移动位置|
+
+
+|syn::TokenBuffer|和syn::ParseStream差不多,通过begin得到Cursor|通过c来解析用空格分开的字符|
+syn::buffer::TokenBuffer::new2(st.body.clone());通过最初的TokenStream生成TokenBuffer
+
+
+|TokenTree|
+|ParseBuffer|ParseStream到proc-macro2::TokenStream不能直接转要通过ParseBuffer|
+let body: proc_macro2::TokenStream = body_buf.parse()?;
+input.parse();
+
+
+|cursor|一步一步的解析|可以解析括号的类型|也可以遍历|可以根据返回的结果来跳转|
+解析方括号最好把proc-macro::TokenStream转为proc-macro2::TokenStream
+解析花括号也是使用proc-macro2::TokenStream，我能匹配到括号，但是不知道括号是什么
+解析花括号里面的多个key_value使用cursor，解析单个key_value使用cursor
+
+
+tokenstream -> tokenbuffer -> cursor
