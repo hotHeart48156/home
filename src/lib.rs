@@ -42,8 +42,8 @@ gpio!(
             mode:"pushpull",interrput:"EXIT3",inter_fun:"handle_exit"
         },
         {
-            name:"red",gpio_group:"gpioec",pin:cd,
-            mode:"pushpull",interrput:"EXIT3",inter_fun:"handle_exit"
+            name:"red",gpio_group:"gpioec",pin:5,
+            mode:"pushpull",interrput:"EXIT3",inter_fun:"handle_exit_second"
         }
     ]
 
@@ -53,7 +53,6 @@ gpio!(
 //       [],[]
 //   }
 
-    
 // );
 
 // gpio!(
