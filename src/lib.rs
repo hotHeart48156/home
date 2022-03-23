@@ -1,10 +1,10 @@
 #![no_std]
-pub mod  bump_alloc;
+pub mod bump_alloc;
 pub mod utiliti;
 // pub mod interrupt;
 extern crate alloc;
 extern crate cortex_m;
-use alloc::{vec::Vec, string::String};
+use alloc::{string::String, vec::Vec};
 // use core::alloc::GlobalAlloc;
 // use core::ptr;
 // use core::cell::UnsafeCell;
@@ -14,7 +14,7 @@ use alloc::{vec::Vec, string::String};
 use utilities::gpio;
 // enum GpioMode {
 //     PushPull
-// } 
+// }
 // struct GpioConf{
 //     name:String,
 //     gpio_group:String,
@@ -35,11 +35,29 @@ use utilities::gpio;
 // }
 
 gpio!(
-    // [
+
+    [
         {
             name:"led",gpio_group:"gpioe",pin:3,
-            mode:"pushpull",interrput:"EXIT3",inter_fun:handle_exit
+            mode:"pushpull",interrput:"EXIT3",inter_fun:"handle_exit"
+        },
+        {
+            name:"red",gpio_group:"gpioec",pin:cd,
+            mode:"pushpull",interrput:"EXIT3",inter_fun:"handle_exit"
         }
-    // ]
-);
+    ]
 
+);
+// gpio!(
+//   {
+//       [],[]
+//   }
+
+    
+// );
+
+// gpio!(
+//     [
+//         {cslm:"cs",}
+//     ]
+// );

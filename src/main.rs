@@ -1,6 +1,8 @@
 #![no_std]
 #![no_main]
 #![feature(alloc_error_handler)]
+#[warn(unused_imports)]
+#[warn(dead_code)]
 extern crate alloc;
 use alloc::vec::Vec;
 use cortex_m::interrupt::Mutex;

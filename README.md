@@ -9,7 +9,7 @@ stlink/ulink/jlink cfg下载：https://github.com/openrisc/openOCD/tree/master/t
 example:
 mod time
 mod gpio
-mod searil
+mod serial
 #[proc_macro]
 fn time(input:tokenstream)->tokenstream{
 //todo 生成静态的时钟变量，总线变量和初始化时钟变量的函数
@@ -65,26 +65,40 @@ usage:
          // home::time_init();由init完成调用
          // home::led_init()
      }
+
+-------------------------
 |proc-macro::TokenStream| proc_macro宏就是要初始的就是stream|不能解析内容|直接返回|
+-------------------------
 
-
-|proc-macro2::TokenStream|生成:proc-macro::TokenStream，|由以下可以生成|可以解析成vec<TokenTree>数组，通过遍历解析，可以解析括号|不能解析括号的类型|
+|proc-macro2::TokenStream|生成:proc-macro::TokenStream，|由以下可以生成|可以解析成vec<TokenTree>数组，通过遍历解析，可以解析括号，提取括号里面的内容|不能解析括号的类型|
 let buf = ts.clone().into_iter().collect::<Vec<_>>();
+let tree_node = &buf[idx];
+match tree_node{
+    proc_macro2::TokenTree::Group(g) => {
+    // 如果是括号包含的内容，我们就要递归处理内部的TokenStream
+    let new_stream = self.expand(&g.stream(), n);
+}
 通过into生成proc-macro::TokenStream
-
+-------------------------
 
 |syn::ParseStream|syn把proc-macro::TokenStream，变为ParseStream|可以解析内容|parse只能解析连续的用空格分开的，不能解析括号|可以用peek查看后面的token，不移动位置|
+input: syn::parse::ParseStream
+input.parse::<syn::Token!(in)>()?;
+let start: syn::LitInt = input.parse()?;
 
+let body_buf;
+syn::braced!(body_buf in input);
+let body: proc_macro2::TokenStream  = body_buf.parse()?;
+-------------------------
 
 |syn::TokenBuffer|和syn::ParseStream差不多,通过begin得到Cursor|通过c来解析用空格分开的字符|
 syn::buffer::TokenBuffer::new2(st.body.clone());通过最初的TokenStream生成TokenBuffer
-
-
+-------------------------
 |TokenTree|
 |ParseBuffer|ParseStream到proc-macro2::TokenStream不能直接转要通过ParseBuffer|
 let body: proc_macro2::TokenStream = body_buf.parse()?;
 input.parse();
-
+-------------------------
 
 |cursor|一步一步的解析|可以解析括号的类型|也可以遍历|可以根据返回的结果来跳转|
 解析方括号最好把proc-macro::TokenStream转为proc-macro2::TokenStream
