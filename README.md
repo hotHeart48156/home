@@ -107,3 +107,15 @@ input.parse();
 
 
 tokenstream -> tokenbuffer -> cursor
+2022-3月24日方案
+gpio：
+    先初始化相应的静态变量
+    static BUTTON1_PIN: Mutex<RefCell<Option<PE3<Input<PullUp>>>>> =
+    Mutex::new(RefCell::new(None));
+    需要改变BUTTON1_PIN--名字，PE3引脚，INPUT模式，PullUp，放在lib文件下
+    初始化gpio的函数，每一个gpio建立一个以gpio name为名的函数
+     let gpioe = dp.GPIOE.split(ccdr.peripheral.GPIOE);
+    let mut button1 = gpioe.pe3.into_pull_up_input();
+    button1.make_interrupt_source(&mut syscfg);
+    button1.trigger_on_edge(&mut exti, Edge::Rising);
+    button1.enable_interrupt(&mut exti);

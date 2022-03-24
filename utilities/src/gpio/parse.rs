@@ -31,12 +31,21 @@ impl GpiosParser {
         let buffer = syn::buffer::TokenBuffer::new2(ts.clone());
         let mut cursor = buffer.begin();
         let mut key_values: Vec<KeyValue> = vec![];
+        let mut ret: proc_macro2::TokenStream;
         while !cursor.eof() {
             let key_value = KeyValue::new(cursor.clone()).unwrap();
-            eprintln!("key:{}--value:{}",key_value.key,key_value.value);
+            eprintln!("key:{}--value:{}", key_value.key, key_value.value);
             key_values.push(key_value.clone());
             cursor = key_value.cursor;
+            // ret.extend(quote::quote! {})
         }
+
+        return proc_macro2::TokenStream::new();
+    }
+    fn attribute_parse(&self, key_values: Vec<KeyValue>) -> proc_macro2::TokenStream {
+        // key_values.into_iter().map(|key_value| {
+            
+        // }).collect();
 
         return proc_macro2::TokenStream::new();
     }
@@ -59,7 +68,7 @@ impl syn::parse::Parse for GpiosParser {
                 }
             };
             gpios.push(block_ts);
-            let _com = match all_block.parse::<syn::Token!(,)>() {
+            let _ = match all_block.parse::<syn::Token!(,)>() {
                 Ok(comma) => match all_block.is_empty() {
                     true => {
                         return Err(syn::Error::new(
@@ -69,13 +78,7 @@ impl syn::parse::Parse for GpiosParser {
                     }
                     false => comma,
                 },
-                Err(_) => {
-                    // return Err(syn::Error::new(
-                    //     block.span(),
-                    //     "There are no curly braces behind, no parentheses can be added",
-                    // ));
-                    syn::token::Comma::default()
-                }
+                Err(_) => syn::token::Comma::default(),
             };
         }
 
