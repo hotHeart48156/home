@@ -1,4 +1,4 @@
-pub struct GpioParser {
+pub struct GpiosParser {
     pub gpios: Vec<proc_macro2::TokenStream>,
 }
 
@@ -19,52 +19,66 @@ const KEYS: [&'static str; 6] = [
 //     return (key, false);
 // }
 
-use proc_macro2::TokenStream;
+use std::vec;
+
+// use proc_macro2::TokenStream;
 use syn::parse::ParseBuffer;
 
-impl GpioParser {
-    pub fn expand(&self, ts: &proc_macro2::TokenStream) -> proc_macro2::TokenStream {
-        // let buf = ts.clone().into_iter().collect::<Vec<_>>();
-        let ret = proc_macro2::TokenStream::new();
-        let buffer = syn::buffer::TokenBuffer::new2(ts.clone());
-        let cursor = buffer.begin();
-        if let Some((bracke_start_next, _, bracke_end_next)) =
-            cursor.group(proc_macro2::Delimiter::Parenthesis)
-        {
-            let (a, b) = bracke_start_next.ident().unwrap();
-            // self.parse_groups(bracke_start_next)
-            eprintln!("aacmsklcmsdl{:#?}", a.to_string());
-        }
-        // eprintln!("{:#?}",ts);
-        ret
-    }
+use crate::key_value::KeyValue;
 
-    // fn parse_groups(&self, cursor: syn::buffer::Cursor) -> syn::Result<proc_macro2::TokenStream> {
-    //     while let Some(brace_start_next, _, brace_end_next) =
-    //         cursor.group(proc_macro2::Delimiter::Brace)
-    //     {
-    //         self.parse_group(brace_start_next, brace_end_next.clone());
-    //         cursor = brace_end_next;
-    //     }
-    // }
+impl GpiosParser {
+    pub fn expand(&self, ts: &proc_macro2::TokenStream) -> proc_macro2::TokenStream {
+        let buffer = syn::buffer::TokenBuffer::new2(ts.clone());
+        let mut cursor = buffer.begin();
+        let mut key_values: Vec<KeyValue> = vec![];
+        while !cursor.eof() {
+            let key_value = KeyValue::new(cursor.clone()).unwrap();
+            eprintln!("key:{}--value:{}",key_value.key,key_value.value);
+            key_values.push(key_value.clone());
+            cursor = key_value.cursor;
+        }
+
+        return proc_macro2::TokenStream::new();
+    }
 }
-impl syn::parse::Parse for GpioParser {
+impl syn::parse::Parse for GpiosParser {
     fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
         let mut all_block: ParseBuffer;
-        let mut first_block: ParseBuffer;
-        let mut secode_block: ParseBuffer;
+        let mut block: ParseBuffer;
+        let mut gpios: Vec<proc_macro2::TokenStream> = vec![];
         syn::bracketed!(all_block in input);
-        syn::braced!(first_block in all_block);
-        eprintln!("first block{:#?}", all_block);
-        let com = all_block.parse::<syn::Token!(,)>()?;
-        eprintln!("common{:#?}", com);
-        syn::braced!(secode_block in all_block);
-        eprintln!("sencode block{:#?}", secode_block);
-        return Ok(GpioParser {
-            gpios: vec![
-                first_block.parse::<proc_macro2::TokenStream>()?,
-                secode_block.parse::<proc_macro2::TokenStream>()?,
-            ],
-        });
+        while !all_block.is_empty() {
+            syn::braced!(block in all_block);
+            let block_ts = match block.parse::<proc_macro2::TokenStream>() {
+                Ok(ts) => ts,
+                Err(_) => {
+                    return Err(syn::Error::new(
+                        block.span(),
+                        "curly braces cannot be parsed as tokenstream",
+                    ));
+                }
+            };
+            gpios.push(block_ts);
+            let _com = match all_block.parse::<syn::Token!(,)>() {
+                Ok(comma) => match all_block.is_empty() {
+                    true => {
+                        return Err(syn::Error::new(
+                            block.span(),
+                            "There are no curly braces behind, no parentheses can be added",
+                        ));
+                    }
+                    false => comma,
+                },
+                Err(_) => {
+                    // return Err(syn::Error::new(
+                    //     block.span(),
+                    //     "There are no curly braces behind, no parentheses can be added",
+                    // ));
+                    syn::token::Comma::default()
+                }
+            };
+        }
+
+        return Ok(GpiosParser { gpios });
     }
 }

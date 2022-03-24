@@ -44,6 +44,10 @@ gpio!(
         {
             name:"red",gpio_group:"gpioec",pin:5,
             mode:"pushpull",interrput:"EXIT3",inter_fun:"handle_exit_second"
+        },
+        {
+            name:"red",gpio_group:"gpioec",pin:5,
+            mode:"pushpull",interrput:"EXIT3",inter_fun:"handle_exit_second"
         }
     ]
 

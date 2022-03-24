@@ -41,10 +41,10 @@ macro_rules! example_power {
         }
     }};
 }
-static COUNTER: Mutex<RefCell<Option<cortex_m::Peripherals>>> = Mutex::new(RefCell::new(Option::None));
+static _COUNTER: Mutex<RefCell<Option<cortex_m::Peripherals>>> = Mutex::new(RefCell::new(Option::None));
 #[entry]
 fn main() -> ! {
-    let cp=cortex_m::Peripherals::take().unwrap();
+    let _cp=cortex_m::Peripherals::take().unwrap();
     // COUNTER.borrow(cp).borrow();
     
 // static dp = pac::Peripherals::take().unwrap();
