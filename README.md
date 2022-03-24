@@ -110,12 +110,107 @@ tokenstream -> tokenbuffer -> cursor
 2022-3月24日方案
 gpio：
     先初始化相应的静态变量
-    static BUTTON1_PIN: Mutex<RefCell<Option<PE3<Input<PullUp>>>>> =
-    Mutex::new(RefCell::new(None));
-    需要改变BUTTON1_PIN--名字，PE3引脚，INPUT模式，PullUp，放在lib文件下
-    初始化gpio的函数，每一个gpio建立一个以gpio name为名的函数
-     let gpioe = dp.GPIOE.split(ccdr.peripheral.GPIOE);
-    let mut button1 = gpioe.pe3.into_pull_up_input();
-    button1.make_interrupt_source(&mut syscfg);
-    button1.trigger_on_edge(&mut exti, Edge::Rising);
-    button1.enable_interrupt(&mut exti);
+    提取相应的变量，到结构体里面
+        GpioStruct{
+        name:Option<String>,
+        mode::Option<String>,
+        gpio_group:Option<String>,
+        pin:Option<String>,
+        interrupt:Option<String>,
+        priority:Option<String>,
+    }
+    struct Mode{
+        forward:String,
+        mode:String,
+        function:String
+    }
+    const MODE_MAP:map<String,Mode>=[
+        { "push_pull":Mode{forward:"Input",mode:"Pull","function":"into_pull_up_input"}},
+        { "open_drain":Mode{forward:"Input",mode:"Pull","function":"into_open_drain"}}
+    ]
+    fn parse(key_values:Vec<KeyValue>)->GpioStruct{
+        
+    let name:Option<String>=None;
+    let gpio_group:Option<String>=None;
+    let mode:Option<String>=None;
+    let pin:Option<String>=None;
+    let interrupt:Option<String>=None;
+    let priority:Option<String>=None;
+
+    for key_value in key_values{
+        match key_value{
+            "name"=>name=key_value.value,
+            "gpio_group"=>gpio_group=key_value.value,
+            "pin"=>pin=key_value.value,
+            "interrupt"=>interrupt=key_value.value,
+            "priority"=>priority=key_value.value,
+            "mode"=>mode=key_value.value,
+        }
+    }
+    GpioStruct{name,gpio_group,pin,interrupt,priotiry,mode}
+    }
+
+    gpio_struct=parse(key_values);
+    let name=match gpio_struct.name{
+        Some(name)=>name,
+        None=>return Err();
+    };
+    let mode=match gpio_struct.mode{
+        Some(mode)=>mode,
+        None=>return Err();
+    };
+    let gpio_group=match gpio_struct.gpio_group{
+        Some(gpio_group)=>gpio_group,
+        None=>return Err();
+    };
+    let pin=match gpio_struct.pin{
+        Some(pin)=>pin,
+        None=>return Err();
+    };
+    let interrupt=match gpio_struct.interrupt{
+        Some(interrupt)=>interrupt,
+        None=>"";
+    };
+    let priority=match gpio_struct.priority{
+        Some(priority)=>priority,
+        None=>"";
+    };
+    let ident_mode=MODE_MAP.get(mode);
+    let forward=ident_mode.forward;//此处不能直接在quote中用点。
+    let mode=ident_mode.mode;
+    let static_quote_block=
+     quote::quote! {
+                  static #name: Mutex<RefCell<Option<PE3<#forward<#mode>>>>> = Mutex::new(RefCell::new(None));
+                  }
+    let init_quote_function=quote::quote!{
+        fn led_init() {
+        free(|cs| {
+        let _dp = DP.borrow(cs).take().unwrap();
+        let _ccdr = CCDR.borrow(cs).take().unwrap();
+        let _gpioe = _dp.GPIOE.split(_ccdr.peripheral.GPIOE);
+        let mut _led = _gpioe.pe3.into_pull_up_input();
+        // _led.make_interrupt_source(&mut syscfg);
+        // _led.enable_interrupt(&mut dp.EXTI);
+        // _led.trigger_on_edge(&mut dp.EXTI, Edge::Rising);
+        name.borrow(cs).replace(Some(_led));
+    });
+        free(|cs| {
+        let mut _cp = CP.borrow(cs).take().unwrap();
+        unsafe {
+            _cp.NVIC.set_priority(interrupt::#interrupt, #priority);
+            NVIC::unmask::<interrupt>(interrupt::#interrupt);
+            _cp.NVIC.set_priority(interrupt::#interrupt, #priority);
+            NVIC::unmask::<interrupt>(interrupt::#interrupt,);
+        }
+    })
+    let mut ret=static_quote_block;
+    let ret.extend(init_quote_function);
+    return Ok(ret);
+}
+    }
+------------------------------------------------------------------
+#lib.rs
+parse(key_value).into;
+
+
+
