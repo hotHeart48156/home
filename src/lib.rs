@@ -55,14 +55,14 @@ fn time_init() -> Result<(), ()> {
         let _pwr_rng = DP.borrow(cs).take().unwrap().PWR.constrain();
         PWR_CONF.borrow(cs).replace(Some(_pwr_rng.freeze()));
         //时钟rcc
-        let rcc = DP.borrow(cs).take().unwrap().RCC.constrain();
-        RCC.borrow(cs).replace(Some(rcc));
+        let _rcc = DP.borrow(cs).take().unwrap().RCC.constrain();
+        RCC.borrow(cs).replace(Some(_rcc));
         //时钟ccdr
-        let pwr_cfg = PWR_CONF.borrow(cs).take().unwrap();
-        let ccdr_rcc = RCC.borrow(cs).take().unwrap();
+        let _pwr_cfg = PWR_CONF.borrow(cs).take().unwrap();
+        let _ccdr_rcc = RCC.borrow(cs).take().unwrap();
         let _dp = DP.borrow(cs).take().unwrap();
-        let ccdr = ccdr_rcc.sys_ck(100.mhz()).freeze(pwr_cfg, &_dp.SYSCFG);
-        CCDR.borrow(cs).replace(Some(ccdr));
+        let _ccdr = _ccdr_rcc.sys_ck(100.mhz()).freeze(_pwr_cfg, &_dp.SYSCFG);
+        CCDR.borrow(cs).replace(Some(_ccdr));
         //中断
         // let _dp=DP.borrow(cs).take().unwrap();
         // let mut exti = _dp.EXTI;
@@ -71,9 +71,9 @@ fn time_init() -> Result<(), ()> {
 }
 fn led_init() {
     free(|cs| {
-        let dp = DP.borrow(cs).take().unwrap();
-        let ccdr = CCDR.borrow(cs).take().unwrap();
-        let _gpioe = dp.GPIOE.split(ccdr.peripheral.GPIOE);
+        let _dp = DP.borrow(cs).take().unwrap();
+        let _ccdr = CCDR.borrow(cs).take().unwrap();
+        let _gpioe = _dp.GPIOE.split(_ccdr.peripheral.GPIOE);
         let mut _led = _gpioe.pe3.into_pull_up_input();
         // _led.make_interrupt_source(&mut syscfg);
         // _led.enable_interrupt(&mut dp.EXTI);
