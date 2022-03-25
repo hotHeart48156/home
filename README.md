@@ -65,7 +65,6 @@ usage:
          // home::time_init();由init完成调用
          // home::led_init()
      }
-
 -------------------------
 |proc-macro::TokenStream| proc_macro宏就是要初始的就是stream|不能解析内容|直接返回|
 -------------------------
