@@ -23,20 +23,20 @@ static HEAP: BumpPointerAlloc = BumpPointerAlloc {
 fn cortex_panic_handler(_panic: &PanicInfo) -> ! {
     loop {}
 }
-// time!(100);
+time!(100);
 gpio!(
 
     [
         {
-            name:"led",gpio_group:"gpioe",pin:3,
+            name:"led",gpio_group:"gpioe",pin:cc,
             mode:"push_pull",interrupt:"EXIT3",priority:"handle_exit"
         },
         {
-            name:"red",gpio_group:"gpioec",pin:5,
+            name:"red",gpio_group:"gpioec",pin:cc,
             mode:"push_pull",interrupt:"EXIT3",priority:"handle_exit_second"
         },
         {
-            name:"ced",gpio_group:"gpioec",pin:5,
+            name:"ced",gpio_group:"gpioec",pin:cc,
             mode:"push_pull",interrupt:"EXIT3",priority:"handle_exit_second"
         }
     ]

@@ -37,8 +37,7 @@ pub fn gpio(input: TokenStream) -> TokenStream {
             ""
         })
         .collect();
-    eprintln!("{:#?}",ret.to_string());
-     ret.into()
+    ret.into()
 }
 // #[proc_macro]
 // pub fn serial(input: TokenStream) -> TokenStream {

@@ -14,13 +14,18 @@ impl GpiosParser {
         // let mut ret: proc_macro2::TokenStream;
         while !cursor.eof() {
             let key_value = match KeyValue::new(cursor.to_owned()) {
-                Ok(key_value) => key_value,
-                Err(_) => return Err(syn::Error::new(cursor.span(), "parse error")),
+                
+                Ok(key_value) => {
+                    key_value
+                },
+                Err(_) => {
+                    return Err(syn::Error::new(cursor.span(), "parse error"))
+                },
             };
-            // eprintln!("key:{}--value:{}", key_value.key, key_value.value);
             key_values.push(key_value.0.clone());
             cursor = key_value.1;
         }
+        
         Ok(key_values)
     }
     // fn attribute_parse(&self, key_values: Vec<KeyValue>) -> proc_macro2::TokenStream {

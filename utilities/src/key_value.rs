@@ -1,14 +1,10 @@
-// use std::{str::FromStr, vec};
-
-use std::str::FromStr;
-
-use proc_macro2::{Literal, Punct};
+use proc_macro2::Punct;
 use syn::buffer::Cursor;
 
 #[derive(Clone)]
 pub struct KeyValue {
     pub key: String,
-    pub value: String,
+    pub value: syn::Ident,
     // pub cursor: Cursor<'a>,
 }
 impl KeyValue {
@@ -37,14 +33,21 @@ impl KeyValue {
                 ));
             }
         };
-        let (value_literal, value_cursor) = match colon_cursor.literal() {
-            Some(value) => value,
+        let (value_ident, value_cursor) = match colon_cursor.literal() {
+            Some(value) => (
+                syn::Ident::new(value.0.to_string().trim_matches('\"'), value.1.span()),
+                value.1,
+            ),
             None => {
-                let _value=match colon_cursor.ident() {
-                    Some(value) => (Literal::from_str(value.0.to_string().as_str()), value.1),
-                    None => (Literal::from_str("s"), colon_cursor),
+                let (_value, _cursor) = match colon_cursor.ident() {
+                    Some(value) => (
+                        syn::Ident::new(value.0.to_string().trim_matches('\"'), value.1.span()),
+                        value.1,
+                    ),
+                    None => return Err(syn::Error::new(colon_cursor.span(), "must have value")),
                 };
-                return Err(syn::Error::new(colon_cursor.span(), "must have value"));
+                (_value, _cursor)
+                // return Err(syn::Error::new(colon_cursor.span(), "must have value"));
             }
         };
         let (_comma_punct, comma_cursor) = match value_cursor.punct() {
@@ -57,8 +60,7 @@ impl KeyValue {
         Ok((
             KeyValue {
                 key: key_ident.to_string(),
-                value: value_literal.to_string(),
-                // cursor: comma_cursor.to_owned(),
+                value: value_ident,
             },
             comma_cursor,
         ))
