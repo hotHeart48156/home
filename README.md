@@ -110,7 +110,7 @@ tokenstream -> tokenbuffer -> cursor
 gpio：
     先初始化相应的静态变量
     提取相应的变量，到结构体里面
-        GpioStruct{
+    struct  GpioStruct{
         name:Option<String>,
         mode::Option<String>,
         gpio_group:Option<String>,
@@ -210,6 +210,34 @@ gpio：
 ------------------------------------------------------------------
 #lib.rs
 parse(key_value).into;
+--------------------------------------------------------------------
+2022-3月-25日
 
+parse意味把单个tokenstream解析为多个有意义的tokenstream，expand意味解析一个有意义的tokenstream为
+一个vec<keyvalue>
+现在要把keyvalue解析为新的代码，convert_map_to_quote
+--------------------------------------------------------------------
+用python解析表格思路
+class attribute{
+    name:str
+    value:str
+    time:str
+
+    getvalue(){
+        if(value.0.contain("未"))return 1;else return 0
+    }
+}
+
+class table{
+    attributes:list
+}
+提取所以属性的时间为一个list，用matlib解析
+time_line=[]
+name_line=[]
+for att in attributes:
+    time_lime.add(att.value)
+    name_line.add(att.name)
+提取所有属性的值
+matlib.show()
 
 

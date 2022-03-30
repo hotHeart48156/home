@@ -2,7 +2,7 @@ use core::alloc::GlobalAlloc;
 use core::alloc::Layout;
 use core::cell::UnsafeCell;
 use core::ptr;
-use cortex_m::asm;
+// use cortex_m::asm;
 use cortex_m::interrupt;
 pub struct BumpPointerAlloc {
     pub head: UnsafeCell<usize>,

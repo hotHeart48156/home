@@ -10,3 +10,4 @@ proc-macro=true
 quote="1"
 syn={features=["full","extra-traits"]}
 proc-macro2={version="1.0"}
+lazy_static = "1.4.0"

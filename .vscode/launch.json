@@ -10,7 +10,7 @@
             "name": "Debug Microcontroller",
             "request": "launch",
             "type": "cortex-debug",
-            "showDevDebugOutput": false,
+            "showDevDebugOutput": true,
             "servertype": "openocd",
             "svdFile": "./STM32H743.svd",
             "configFiles": ["openocd.cfg"]
