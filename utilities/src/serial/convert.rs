@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-
 use crate::key_value::KeyValue;
 #[derive(Debug)]
 struct GpioStruct {
@@ -34,14 +33,6 @@ lazy_static::lazy_static!(
                 function: "into_open_drain",
             },
         ),
-        (
-            "alternate_af7",
-             Mode {
-                 forward: "Alternate",
-                 mode: "AF7",
-                 function: "into_alternate_af7",
-             },
-         ),
     ]);
 );
 fn convert_map_to_gpio_struct(key_values: Vec<KeyValue>) -> Result<GpioStruct, ()> {
@@ -52,6 +43,7 @@ fn convert_map_to_gpio_struct(key_values: Vec<KeyValue>) -> Result<GpioStruct, (
     let mut interrupt: Option<syn::Ident> = None;
     let mut priority: Option<syn::Ident> = None;
     for key_value in key_values {
+        // eprintln!("{},{}",key_value.key,key_value.value.to_string());
         match key_value.key.as_str() {
             "name" => name = Some(key_value.value),
             "gpio_group" => gpio_group = Some(key_value.value),

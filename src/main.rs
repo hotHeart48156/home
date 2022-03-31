@@ -8,7 +8,8 @@ use core::panic::PanicInfo;
 use cortex_m::asm;
 use cortex_m_rt::entry;
 use home::bump_alloc::BumpPointerAlloc;
-use utilities::{gpio, time};
+use utilities::{gpio, serial, time};
+// use stm32h7xx_hal::{pac, prelude::*};
 #[alloc_error_handler]
 fn on_oom(_layout: Layout) -> ! {
     asm::bkpt();
@@ -25,24 +26,32 @@ fn cortex_panic_handler(_panic: &PanicInfo) -> ! {
 }
 time!(100);
 gpio!(
-
     [
         {
             name:led,gpio_group:"gpioe",pin:3,
-            mode:"push_pull",interrupt:"EXIT3",priority:"handle_exit"
+            mode:"push_pull_output",interrupt:"EXTI3",priority:1
         },
         {
-            name:"red",gpio_group:"gpioe",pin:3,
-            mode:"push_pull",interrupt:"EXIT3",priority:"handle_exit_second"
+            name:"wifi_tx",gpio_group:"gpioe",pin:3,
+            mode:"push_pull_output",interrupt:"EXTI3",priority:1
         },
         {
-            name:"ced",gpio_group:"gpioe",pin:3,
-            mode:"push_pull",interrupt:"EXIT3",priority:"handle_exit_second"
+            name:"wifi_rx",gpio_group:"gpioe",pin:3,
+            mode:"push_pull_output",interrupt:"EXTI3",priority:1
+        },
+        {
+            name:"usb",gpio_group:"gpioe",pin:3,
+            mode:"alternate_af7",interrupt:"EXTI3",priority:1
         }
     ]
-
 );
-
+serial!(
+    [
+        {
+            name:"wifi",tx:"wifi_tx",rx:"wifi_rx",baud_rate:115200
+        }
+    ]
+);
 #[entry]
 fn main() -> ! {
     loop {}
