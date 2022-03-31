@@ -5,14 +5,35 @@ use syn::buffer::Cursor;
 pub struct KeyValue {
     pub key: String,
     pub value: syn::Ident,
-    // pub cursor: Cursor<'a>,
 }
 impl KeyValue {
     pub fn new(cursor: Cursor) -> syn::Result<(Self, Cursor)> {
         let (key_ident, key_cursor) = match cursor.ident() {
             Some(key) => key,
             None => {
-                return Err(syn::Error::new(cursor.span(), "expect ident"));
+                let (_value, _cursor) = match cursor.literal() {
+                    Some(value) => {
+                        if value.0.to_string().parse::<u32>().is_ok() {
+                            let ident_number = format!("ident_{}", value.0.to_string());
+                            (
+                                syn::Ident::new(ident_number.as_str(), value.1.span()),
+                                value.1,
+                            )
+                        } else {
+                            (
+                                syn::Ident::new(
+                                    value.0.to_string().trim_matches(&['\"', '\''] as &[_]),
+                                    value.1.span(),
+                                ),
+                                value.1,
+                            )
+                        }
+                    }
+                    None => {
+                        return Err(syn::Error::new(cursor.span(), "expect ident"));
+                    }
+                };
+                (_value, _cursor)
             }
         };
 
@@ -33,21 +54,35 @@ impl KeyValue {
                 ));
             }
         };
-        let (value_ident, value_cursor) = match colon_cursor.literal() {
+        let (value_ident, value_cursor) = match colon_cursor.ident() {
             Some(value) => (
                 syn::Ident::new(value.0.to_string().trim_matches('\"'), value.1.span()),
                 value.1,
             ),
             None => {
-                let (_value, _cursor) = match colon_cursor.ident() {
-                    Some(value) => (
-                        syn::Ident::new(value.0.to_string().trim_matches('\"'), value.1.span()),
-                        value.1,
-                    ),
-                    None => return Err(syn::Error::new(colon_cursor.span(), "must have value")),
+                let (_value, _cursor) = match colon_cursor.literal() {
+                    Some(value) => {
+                        if value.0.to_string().parse::<u32>().is_ok() {
+                            let ident_number = format!("ident_{}", value.0.to_string());
+                            (
+                                syn::Ident::new(ident_number.as_str(), value.1.span()),
+                                value.1,
+                            )
+                        } else {
+                            (
+                                syn::Ident::new(
+                                    value.0.to_string().trim_matches(&['\"', '\''] as &[_]),
+                                    value.1.span(),
+                                ),
+                                value.1,
+                            )
+                        }
+                    }
+                    None => {
+                        return Err(syn::Error::new(colon_cursor.span(), "must have value"));
+                    }
                 };
                 (_value, _cursor)
-                // return Err(syn::Error::new(colon_cursor.span(), "must have value"));
             }
         };
         let (_comma_punct, comma_cursor) = match value_cursor.punct() {

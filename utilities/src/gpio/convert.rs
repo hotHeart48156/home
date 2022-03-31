@@ -21,16 +21,16 @@ lazy_static::lazy_static!(
         (
             String::from("push_pull"),
             Mode {
-                forward: "Input",
-                mode: "Pull",
+                forward: "Output",
+                mode: "PushPull",
                 function: "into_pull_up_input",
             },
         ),
         (
            String::from("open_drain"),
             Mode {
-                forward: "Input",
-                mode: "Pull",
+                forward: "Output",
+                mode: "PushPull",
                 function: "into_open_drain",
             },
         ),
@@ -79,23 +79,36 @@ pub fn convert_gpio_struct_to_quote(
         Ok(ok) => ok,
         Err(_) => return Err("".to_string()),
     };
+    // 处理静态变量名字和函数名字
     let name = match gpio_struct.name {
         Some(name) => syn::Ident::new(name.to_string().to_uppercase().as_str(), name.span()),
         None => return Err(String::from("must have name")),
     };
+    let _function_name_literal = format!("{}_init", name.to_string().to_lowercase());
+    let _function_name_ident = syn::Ident::new(_function_name_literal.as_str(), name.span());
+    //处理gpio模式
     let _mode = match gpio_struct.mode {
         Some(mode) => mode,
         None => {
             return Err("".to_string());
         }
     };
-    let ident_mode = match MODE_MAP.get(&String::from("push_pull")) {
+    let mode_struct = match MODE_MAP.get(&String::from("push_pull")) {
         Some(mode) => mode,
         None => {
-            eprintln!("no found");
+            eprintln!("not support mode");
             return Err(format!("mode not found"));
         }
     };
+    let _mode_literal = mode_struct.mode;
+    let _mode_ident = syn::Ident::new(_mode_literal, _mode.span());
+
+    let _forward_literal = mode_struct.forward;
+    let _forward_ident = syn::Ident::new(_forward_literal, _mode.span());
+
+    let _mode_function_literal = mode_struct.function;
+    let _mode_function_ident = syn::Ident::new(_mode_function_literal, _mode.span());
+    //处理gpio组,和引脚
     let _gpio_group = match gpio_struct.gpio_group {
         Some(gpio_group) => gpio_group,
         None => {
@@ -103,38 +116,57 @@ pub fn convert_gpio_struct_to_quote(
         }
     };
     let _pin = match gpio_struct.pin {
-        Some(pin) => pin,
+        Some(pin) => pin.to_string().chars().last().unwrap(),
         None => {
             return Err("".to_string());
         }
     };
+    let _gpio_group_last_char = _gpio_group
+        .clone()
+        .to_string()
+        .chars()
+        .last()
+        .unwrap()
+        .to_string();
+    let _gpio_group_last_char_uppercase = _gpio_group_last_char.to_uppercase();
+    let _gpio_group_last_char_lowercase = _gpio_group_last_char.to_lowercase();
+
+
+    let _gpio_group_literal =
+        format!("{}{}", "gpio", _gpio_group_last_char_lowercase);
+    let _gpio_group_ident = syn::Ident::new(_gpio_group_literal.as_str(), _gpio_group.span());
+    
+    
+    let _gpio_group_pin_literal =
+        format!("{}{}{}", "P", _gpio_group_last_char_uppercase.to_owned(), _pin.parse::<u32>.unwrap());
+    let _gpio_group_pin_ident =
+        syn::Ident::new(_gpio_group_pin_literal.as_str(), _gpio_group.span());
+    //处理gpio中断
     let _interrupt = match gpio_struct.interrupt {
         Some(interrupt) => interrupt,
         None => return Err("".to_string()),
     };
+    //处理gpio中断优先级
     let _priority = match gpio_struct.priority {
         Some(priority) => priority,
         None => return Err("".to_string()),
     };
 
     let mut ret = proc_macro2::TokenStream::new();
-    let _forward = ident_mode.forward; //此处不能直接在quote中用点。
-    let _mode = ident_mode.mode;
-    let static_function = quote::quote! {
-            pub static #name: cortex_m::interrupt::Mutex<
-        core::cell::RefCell<
-            core::option::Option<
-                stm32h7xx_hal::gpio::gpioe::PE3<
-                    stm32h7xx_hal::gpio::Output<
-                        stm32h7xx_hal::gpio::PushPull
+    let static_variable = quote::quote! {
+        pub static #name: cortex_m::interrupt::Mutex<
+            core::cell::RefCell<
+                core::option::Option<
+                    stm32h7xx_hal::gpio::#_gpio_group_ident::#_gpio_group_pin_ident<
+                        stm32h7xx_hal::gpio::#_forward_ident<
+                            stm32h7xx_hal::gpio::#_mode_ident
+                        >,
                     >,
                 >,
             >,
-        >,
-    > = cortex_m::interrupt::Mutex::new(core::cell::RefCell::new(None));
-        };
-    let _function_name_literal = format!("{}_init", name.to_string().to_lowercase());
-    let _function_name_ident = syn::Ident::new(_function_name_literal.as_str(), name.span());
+        > = cortex_m::interrupt::Mutex::new(core::cell::RefCell::new(None));
+    };
+
     let initialization_function = quote::quote! {
         pub fn #_function_name_ident() {
             cortex_m::interrupt::free(|cs| {
@@ -154,16 +186,11 @@ pub fn convert_gpio_struct_to_quote(
                     cortex_m::peripheral::NVIC::unmask::<stm32h7xx_hal::interrupt>(
                         stm32h7xx_hal::interrupt::EXTI3,
                     );
-
-                    _cp.NVIC.set_priority(stm32h7xx_hal::interrupt::EXTI9_5, 1);
-                    cortex_m::peripheral::NVIC::unmask::<stm32h7xx_hal::interrupt>(
-                        stm32h7xx_hal::interrupt::EXTI9_5,
-                    );
                 }
             })
         }
     };
-    ret.extend(static_function);
+    ret.extend(static_variable);
     ret.extend(initialization_function);
     return Ok(ret);
 }
