@@ -54,13 +54,13 @@ pub fn serial(input: TokenStream) -> TokenStream {
                     return "";
                 }
             };
-            // let quote = match gpio::convert::convert_gpio_struct_to_quote(sigle_gpio_key_value) {
-            //     Ok(ok) => ok,
-            //     Err(_) => {
-            //         return "";
-            //     }
-            // };
-            // ret.extend(quote);
+            let quote = match serial::convert::convert_serial_struct_to_quote(sigle_gpio_key_value) {
+                Ok(ok) => ok,
+                Err(_) => {
+                    return "";
+                }
+            };
+            ret.extend(quote);
             ""
         })
         .collect();

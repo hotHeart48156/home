@@ -123,13 +123,18 @@ pub fn convert_gpio_struct_to_quote(
             return Err("".to_string());
         }
     };
-    let _pin_string = match gpio_struct.pin {
+    let mut _pin_string = match gpio_struct.pin {
         Some(pin) => pin.to_string(),
         None => {
             return Err("".to_string());
         }
     };
-    let _pin_number = _pin_string.chars().last().unwrap();
+    let _pin_number:String;
+    if let Some(idx) = _pin_string.find('_'){
+        _pin_number=_pin_string.split_off(idx+1)
+    }else{
+        _pin_number="".to_string();
+    }
     let _gpio_group_last_char = _gpio_group
         .clone()
         .to_string()

@@ -9,7 +9,6 @@ use cortex_m::asm;
 use cortex_m_rt::entry;
 use home::bump_alloc::BumpPointerAlloc;
 use utilities::{gpio, serial, time};
-// use stm32h7xx_hal::{pac, prelude::*};
 #[alloc_error_handler]
 fn on_oom(_layout: Layout) -> ! {
     asm::bkpt();
@@ -32,12 +31,12 @@ gpio!(
             mode:"push_pull_output",interrupt:"EXTI3",priority:1
         },
         {
-            name:"wifi_tx",gpio_group:"gpioe",pin:3,
-            mode:"push_pull_output",interrupt:"EXTI3",priority:1
+            name:"wifi_tx",gpio_group:"gpioa",pin:9,
+            mode:"alternate_af7",interrupt:"EXTI3",priority:1
         },
         {
-            name:"wifi_rx",gpio_group:"gpioe",pin:3,
-            mode:"push_pull_output",interrupt:"EXTI3",priority:1
+            name:"wifi_rx",gpio_group:"gpioa",pin:10,
+            mode:"alternate_af7",interrupt:"EXTI4",priority:1
         },
         {
             name:"usb",gpio_group:"gpioe",pin:3,
@@ -48,10 +47,11 @@ gpio!(
 serial!(
     [
         {
-            name:"wifi",tx:"wifi_tx",rx:"wifi_rx",baud_rate:115200
+            name:"wifi",usart:"USART1",tx:"wifi_tx",rx:"wifi_rx",baud_rate:115200
         }
     ]
 );
+
 #[entry]
 fn main() -> ! {
     loop {}
