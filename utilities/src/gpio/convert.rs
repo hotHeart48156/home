@@ -23,7 +23,7 @@ lazy_static::lazy_static!(
             Mode {
                 forward: "Output",
                 mode: "PushPull",
-                function: "into_pull_up_input",
+                function: "into_push_pull_output",
             },
         ),
         (
@@ -115,12 +115,13 @@ pub fn convert_gpio_struct_to_quote(
             return Err("".to_string());
         }
     };
-    let _pin = match gpio_struct.pin {
-        Some(pin) => pin.to_string().chars().last().unwrap(),
+    let _pin_string = match gpio_struct.pin {
+        Some(pin) => pin.to_string(),
         None => {
             return Err("".to_string());
         }
     };
+    let _pin_number = _pin_string.chars().last().unwrap();
     let _gpio_group_last_char = _gpio_group
         .clone()
         .to_string()
@@ -131,16 +132,38 @@ pub fn convert_gpio_struct_to_quote(
     let _gpio_group_last_char_uppercase = _gpio_group_last_char.to_uppercase();
     let _gpio_group_last_char_lowercase = _gpio_group_last_char.to_lowercase();
 
+    let _gpio_group_literal_lowercase =
+        format!("{}{}", "gpio", _gpio_group_last_char_lowercase).to_lowercase();
+    let _gpio_group_literal_uppercase =
+        format!("{}{}", "GPIO", _gpio_group_last_char_uppercase).to_uppercase();
+    let _gpio_group_ident_lowercase =
+        syn::Ident::new(_gpio_group_literal_lowercase.as_str(), _gpio_group.span());
+    let _gpio_group_ident_uppercase =
+        syn::Ident::new(_gpio_group_literal_uppercase.as_str(), _gpio_group.span());
+    let _gpio_group_pin_literal_uppercase = format!(
+        "{}{}{}",
+        "P",
+        _gpio_group_last_char_uppercase.to_owned(),
+        _pin_number
+    )
+    .to_uppercase();
+    let _gpio_group_pin_ident_uppercase = syn::Ident::new(
+        _gpio_group_pin_literal_uppercase.as_str(),
+        _gpio_group.span(),
+    );
 
-    let _gpio_group_literal =
-        format!("{}{}", "gpio", _gpio_group_last_char_lowercase);
-    let _gpio_group_ident = syn::Ident::new(_gpio_group_literal.as_str(), _gpio_group.span());
-    
-    
-    let _gpio_group_pin_literal =
-        format!("{}{}{}", "P", _gpio_group_last_char_uppercase.to_owned(), _pin.parse::<u32>.unwrap());
-    let _gpio_group_pin_ident =
-        syn::Ident::new(_gpio_group_pin_literal.as_str(), _gpio_group.span());
+    let _gpio_group_pin_literal_lowercase = format!(
+        "{}{}{}",
+        "p",
+        _gpio_group_last_char_uppercase.to_owned(),
+        _pin_number
+    )
+    .to_lowercase();
+    let _gpio_group_pin_ident_lowercase = syn::Ident::new(
+        _gpio_group_pin_literal_lowercase.as_str(),
+        _gpio_group.span(),
+    );
+
     //处理gpio中断
     let _interrupt = match gpio_struct.interrupt {
         Some(interrupt) => interrupt,
@@ -157,7 +180,7 @@ pub fn convert_gpio_struct_to_quote(
         pub static #name: cortex_m::interrupt::Mutex<
             core::cell::RefCell<
                 core::option::Option<
-                    stm32h7xx_hal::gpio::#_gpio_group_ident::#_gpio_group_pin_ident<
+                    stm32h7xx_hal::gpio::#_gpio_group_ident_lowercase::#_gpio_group_pin_ident_uppercase<
                         stm32h7xx_hal::gpio::#_forward_ident<
                             stm32h7xx_hal::gpio::#_mode_ident
                         >,
@@ -172,8 +195,8 @@ pub fn convert_gpio_struct_to_quote(
             cortex_m::interrupt::free(|cs| {
                 let _dp = DP.borrow(cs).take().unwrap();
                 let _ccdr = CCDR.borrow(cs).take().unwrap();
-                let _gpioe = _dp.GPIOE.split(_ccdr.peripheral.GPIOE);
-                let mut _led = _gpioe.pe3.into_push_pull_output();
+                let _gpio = _dp.#_gpio_group_ident_uppercase.split(_ccdr.peripheral.#_gpio_group_ident_uppercase);
+                let mut _led = _gpio.#_gpio_group_pin_ident_lowercase.#_mode_function_ident();
                 // _led.make_interrupt_source(&mut syscfg);
                 // _led.enable_interrupt(&mut dp.EXTI);
                 // _led.trigger_on_edge(&mut dp.EXTI, Edge::Rising);
