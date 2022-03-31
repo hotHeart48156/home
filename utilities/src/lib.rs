@@ -4,6 +4,7 @@ mod init;
 mod key_value;
 mod serial;
 mod time;
+mod wrap;
 #[proc_macro]
 pub fn time(input: TokenStream) -> TokenStream {
     let gp = syn::parse_macro_input!(input as time::TimeParse);
@@ -66,5 +67,14 @@ pub fn serial(input: TokenStream) -> TokenStream {
         .collect();
     ret.into()
 }
-// #[proc_macro_attribute]
-// pub fn init() {}
+#[proc_macro_attribute]
+pub fn init(att:TokenStream,input:TokenStream)->TokenStream {
+    let ret=proc_macro2::TokenStream::new();
+    ret.into()
+}
+
+#[proc_macro_attribute]
+pub fn wrap(att:TokenStream,input:TokenStream)->TokenStream {
+    let ret=proc_macro2::TokenStream::new();
+    ret.into()
+}
