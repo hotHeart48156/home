@@ -1,4 +1,5 @@
 use proc_macro::TokenStream;
+use quote::ToTokens;
 mod gpio;
 mod init;
 mod key_value;
@@ -55,7 +56,8 @@ pub fn serial(input: TokenStream) -> TokenStream {
                     return "";
                 }
             };
-            let quote = match serial::convert::convert_serial_struct_to_quote(sigle_gpio_key_value) {
+            let quote = match serial::convert::convert_serial_struct_to_quote(sigle_gpio_key_value)
+            {
                 Ok(ok) => ok,
                 Err(_) => {
                     return "";
@@ -68,13 +70,37 @@ pub fn serial(input: TokenStream) -> TokenStream {
     ret.into()
 }
 #[proc_macro_attribute]
-pub fn init(att:TokenStream,input:TokenStream)->TokenStream {
-    let ret=proc_macro2::TokenStream::new();
-    ret.into()
+pub fn init(atts: TokenStream, input: TokenStream) -> TokenStream {
+    let args = syn::parse_macro_input!(atts as syn::AttributeArgs);
+    let att = args[0].to_token_stream();
+    let att_tk: proc_macro::TokenStream = att.into();
+    let att_meta = syn::parse_macro_input!(att_tk as syn::Meta);
+    let init_functions_semi_vec = match init::expand_attr(&att_meta) {
+        Ok(ok) => ok,
+        Err(e) => {
+            return e.to_compile_error().into();
+        }
+    };
+    let mut  semis: Vec<syn::Stmt> = vec![];
+    let _=init_functions_semi_vec.into_iter().map(|punct| {
+        let semi = init::new_stmi(punct).unwrap();
+        semis.push(semi);
+        0
+    }).collect::<Vec<u32>>();
+    // eprintln!("{:#?}", input);
+    let mut function = syn::parse_macro_input!(input as syn::ItemFn);
+    let fun = function.clone();
+   
+
+    function.block.stmts.extend(semis);
+    eprintln!("{:#?}",function);
+    function.into_token_stream().into()
+    // let ret = proc_macro2::TokenStream::new();
+    // ret.into()
 }
 
 #[proc_macro_attribute]
-pub fn wrap(att:TokenStream,input:TokenStream)->TokenStream {
-    let ret=proc_macro2::TokenStream::new();
+pub fn wrap(_att: TokenStream, _input: TokenStream) -> TokenStream {
+    let ret = proc_macro2::TokenStream::new();
     ret.into()
 }

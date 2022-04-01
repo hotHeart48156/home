@@ -101,7 +101,7 @@ pub fn convert_serial_struct_to_quote(
     };
 
     let initialization_function = quote::quote! {
-        pub fn _function_name_ident() {
+        pub fn #_function_name_ident() {
                 cortex_m::interrupt::free(|cs| {
                     let mut dp = DP.borrow(cs).take().unwrap();
                     let mut ccdr = CCDR.borrow(cs).take().unwrap();
