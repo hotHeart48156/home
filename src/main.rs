@@ -23,13 +23,8 @@ static HEAP: BumpPointerAlloc = BumpPointerAlloc {
 fn cortex_panic_handler(_panic: &PanicInfo) -> ! {
     loop {}
 }
-// #[init(home(led, wifi_rx, wifi_tx))]
-#[init(home(led))]
-fn test() {
-  
-}
 
-#[init(home(led, wifi_rx,wifi_tx))]
+#[init(home(led, "wifi_rx",wifi_tx))]
 #[entry]
 fn main() -> ! {
     loop {}

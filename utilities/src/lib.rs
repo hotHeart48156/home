@@ -93,7 +93,6 @@ pub fn init(atts: TokenStream, input: TokenStream) -> TokenStream {
    
 
     function.block.stmts.extend(semis);
-    eprintln!("{:#?}",function);
     function.into_token_stream().into()
     // let ret = proc_macro2::TokenStream::new();
     // ret.into()
