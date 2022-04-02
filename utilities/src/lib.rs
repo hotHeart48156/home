@@ -99,7 +99,22 @@ pub fn init(atts: TokenStream, input: TokenStream) -> TokenStream {
 }
 
 #[proc_macro_attribute]
-pub fn wrap(_att: TokenStream, _input: TokenStream) -> TokenStream {
-    let ret = proc_macro2::TokenStream::new();
+pub fn wrap(atts: TokenStream, input: TokenStream) -> TokenStream {
+    let args = syn::parse_macro_input!(atts as syn::AttributeArgs);
+    let att = args[0].to_token_stream();
+    let att_tk: proc_macro::TokenStream = att.into();
+    let att_meta = syn::parse_macro_input!(att_tk as syn::Meta);
+    let init_functions_semi_vec = match init::expand_attr(&att_meta) {
+        Ok(ok) => ok,
+        Err(e) => {
+            return e.to_compile_error().into();
+        }
+    };
+    // eprintln!("{:#?}",input);
+    let mut function = syn::parse_macro_input!(input as syn::ItemFn);
+    // function.block;
+    // eprintln!("{:#?}",function);
+    let ret=proc_macro2::TokenStream::new();
     ret.into()
+
 }
