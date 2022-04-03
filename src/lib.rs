@@ -1,11 +1,9 @@
 #![no_std]
 pub mod bump_alloc;
-pub mod utiliti;
-// pub mod interrupt;
 extern crate alloc;
 extern crate cortex_m;
 use utilities::{gpio, serial, time};
-time!(72);
+time!(100);
 gpio!(
     [
         {
