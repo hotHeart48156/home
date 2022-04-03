@@ -9,6 +9,7 @@ use cortex_m::asm;
 use cortex_m_rt::entry;
 use home::bump_alloc::BumpPointerAlloc;
 // use utilities::{gpio, init, serial, time, wrap};
+// use utilities::wrap;
 #[alloc_error_handler]
 fn on_oom(_layout: Layout) -> ! {
     asm::bkpt();

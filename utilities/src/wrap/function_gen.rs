@@ -136,13 +136,9 @@ pub fn gen_single_local_varible(
         path: expr_path,
     });
     let init =
-       gen_unwrap_method_call_path_segment(
-           Box::new(
-            gen_as_mut_method_call_path_segment(Box::new(gen_borrow_mut_method_call_path_segment(
-                Box::new(gen_borrow_method_call_path_segment(Box::new(path))),
-            )))
-           )
-       );
+        gen_unwrap_method_call_path_segment(Box::new(gen_borrow_mut_method_call_path_segment(
+            Box::new(gen_borrow_method_call_path_segment(Box::new(path))),
+        )));
     let semi = syn::Stmt::Local(syn::Local {
         attrs: vec![],
         let_token: syn::token::Let::default(),
@@ -154,7 +150,7 @@ pub fn gen_single_local_varible(
 }
 
 pub fn gen_unwrap_method_call_path_segment(receiver: Box<syn::Expr>) -> syn::Expr {
-    let method = syn::Ident::new("unwrap", proc_macro2::Span::call_site());
+    let method = syn::Ident::new("take", proc_macro2::Span::call_site());
     let args: syn::punctuated::Punctuated<syn::Expr, syn::token::Comma> =
         syn::punctuated::Punctuated::default();
     let init_expr = syn::Expr::MethodCall(syn::ExprMethodCall {
@@ -168,7 +164,7 @@ pub fn gen_unwrap_method_call_path_segment(receiver: Box<syn::Expr>) -> syn::Exp
     });
     init_expr
 }
-pub fn gen_as_mut_method_call_path_segment(receiver: Box<syn::Expr>) -> syn::Expr {
+pub fn _gen_as_mut_method_call_path_segment(receiver: Box<syn::Expr>) -> syn::Expr {
     let method = syn::Ident::new("as_mut", proc_macro2::Span::call_site());
     let args: syn::punctuated::Punctuated<syn::Expr, syn::token::Comma> =
         syn::punctuated::Punctuated::default();

@@ -1,5 +1,7 @@
 #![no_std]
 pub mod bump_alloc;
+pub mod wifi;
+pub mod mqtt;
 extern crate alloc;
 extern crate cortex_m;
 use utilities::{gpio, serial, time};

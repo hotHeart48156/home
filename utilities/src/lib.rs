@@ -116,7 +116,6 @@ pub fn wrap(atts: TokenStream, input: TokenStream) -> TokenStream {
     // eprintln!("{:#?}",input);
 
     function.block.stmts = vec![stmt_semi];
-    eprintln!("{:#?}", function);
     // let ret = proc_macro2::TokenStream::new();
     // ret.into()
     function.into_token_stream().into()
