@@ -25,10 +25,10 @@ pub fn parse_attr(meta: &syn::Meta) -> syn::Result<Vec<Vec<(syn::Ident, syn::tok
                         // if let syn::NestedMeta::Meta(syn::Meta::Path(s)) = c
                         let mut one_stmi: Vec<(syn::Ident, syn::token::Colon2)> = vec![];
                         one_stmi.extend(path_vec.clone());
-                        let name_string = s.get_ident().unwrap().to_string();
+                        let name_string = s.get_ident().unwrap().to_string().to_uppercase();
                         let name_string_cut_token =
                             name_string.as_str().trim_matches(&['\"', '\''] as &[_]);
-                        let init_str = "_init";
+                        let init_str = "";
                         let name_ident_string = format!("{}{}", name_string_cut_token, init_str);
                         let name_ident_str = name_ident_string.as_str();
                         let name_ident =
@@ -36,14 +36,13 @@ pub fn parse_attr(meta: &syn::Meta) -> syn::Result<Vec<Vec<(syn::Ident, syn::tok
                         one_stmi.push((name_ident, syn::token::Colon2::default()));
                         ret.push(one_stmi);
                     } else {
-                        eprintln!("{:#?}", c);
                         if let syn::NestedMeta::Lit(syn::Lit::Str(s)) = c {
                             let mut one_stmi: Vec<(syn::Ident, syn::token::Colon2)> = vec![];
                             one_stmi.extend(path_vec.clone());
-                            let name_string = s.token().to_string();
+                            let name_string = s.token().to_string().to_uppercase();
                             let name_string_cut_token =
                                 name_string.as_str().trim_matches(&['\"', '\''] as &[_]);
-                            let init_str = "_init";
+                            let init_str = "";
                             let name_ident_string =
                                 format!("{}{}", name_string_cut_token, init_str);
                             let name_ident_str = name_ident_string.as_str();

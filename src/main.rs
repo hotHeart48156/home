@@ -8,7 +8,8 @@ use core::panic::PanicInfo;
 use cortex_m::asm;
 use cortex_m_rt::entry;
 use home::bump_alloc::BumpPointerAlloc;
-use utilities::{gpio, init, serial, time, wrap};
+// use utilities::{gpio, init, serial, time, wrap};
+use utilities::wrap;
 #[alloc_error_handler]
 fn on_oom(_layout: Layout) -> ! {
     asm::bkpt();
@@ -24,23 +25,6 @@ fn cortex_panic_handler(_panic: &PanicInfo) -> ! {
     loop {}
 }
 
-pub static WIFI_TX: cortex_m::interrupt::Mutex<
-    core::cell::RefCell<
-        core::option::Option<
-            stm32h7xx_hal::gpio::gpioa::PA9<
-                stm32h7xx_hal::gpio::Alternate<stm32h7xx_hal::gpio::AF7>,
-            >,
-        >,
-    >,
-> = cortex_m::interrupt::Mutex::new(core::cell::RefCell::new(None));
-#[wrap(home(led))]
-fn test() {
-    cortex_m::interrupt::free(|cs| {
-        let led = home::WIFI_TX.borrow(cs).borrow_mut().as_mut();
-    });
-}
-
-// #[init(home(led, "wifi_rx",wifi_tx))]
 #[entry]
 fn main() -> ! {
     loop {}

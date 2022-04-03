@@ -1,4 +1,7 @@
-pub fn gen_free_stmt_stmi() -> syn::Stmt {
+pub fn gen_free_stmt_stmi(
+    input: Vec<Vec<(syn::Ident, syn::token::Colon2)>>,
+    before_stmt: Vec<syn::Stmt>,
+) -> syn::Stmt {
     let cortex_m_ident = syn::Ident::new("cortex_m", proc_macro2::Span::call_site());
     let cortex_m_path_segment = syn::PathSegment {
         ident: cortex_m_ident,
@@ -22,7 +25,6 @@ pub fn gen_free_stmt_stmi() -> syn::Stmt {
     segments.push(interrpute_path_segment);
     segments.push_punct(colon.clone());
     segments.push(free_path_segment);
-    segments.push_punct(colon.clone());
 
     let expr_path = syn::Path {
         leading_colon: None,
@@ -33,8 +35,9 @@ pub fn gen_free_stmt_stmi() -> syn::Stmt {
         qself: None,
         path: expr_path,
     });
-    let args: syn::punctuated::Punctuated<syn::Expr, syn::token::Comma> =
+    let mut args: syn::punctuated::Punctuated<syn::Expr, syn::token::Comma> =
         syn::punctuated::Punctuated::default();
+    args.extend(vec![gen_closure_block(input, before_stmt)]);
     let expr = syn::Expr::Call(syn::ExprCall {
         attrs: vec![],
         paren_token: syn::token::Paren::default(),
@@ -44,17 +47,59 @@ pub fn gen_free_stmt_stmi() -> syn::Stmt {
     let stmi = syn::Stmt::Semi(expr, syn::token::Semi::default());
     stmi
 }
-pub fn gen_closure_block() {
-    let input: syn::punctuated::Punctuated<syn::Pat, syn::token::Comma> =
+pub fn gen_closure_block(
+    input: Vec<Vec<(syn::Ident, syn::token::Colon2)>>,
+    before_stmt: Vec<syn::Stmt>,
+) -> syn::Expr {
+    let mut inputs: syn::punctuated::Punctuated<syn::Pat, syn::token::Comma> =
         syn::punctuated::Punctuated::default();
-    let stms: Vec<syn::Stmt> = vec![];
+    let cs_ident = syn::Ident::new("cs", proc_macro2::Span::call_site());
+    let input_pat = syn::Pat::Ident(syn::PatIdent {
+        attrs: vec![],
+        by_ref: None,
+        mutability: None,
+        ident: cs_ident,
+        subpat: None,
+    });
+    inputs.push(input_pat);
+    let mut stmts: Vec<syn::Stmt> = vec![];
+
+    let _ = input
+        .into_iter()
+        .map(|v| {
+            let name_string = v[v.len() - 1].0.to_string().to_lowercase();
+            let name_ident = syn::Ident::new(name_string.as_str(), v[v.len() - 1].0.span());
+            let mut path_segments: syn::punctuated::Punctuated<
+                syn::PathSegment,
+                syn::token::Colon2,
+            > = syn::punctuated::Punctuated::default();
+            for index in 0..v.len() - 1 {
+                let path_segment = syn::PathSegment {
+                    ident: v[index].0.clone(),
+                    arguments: syn::PathArguments::None,
+                };
+                path_segments.push(path_segment);
+                path_segments.push_punct(v[index].1)
+            }
+            let path_segment = syn::PathSegment {
+                ident: v[v.len() - 1].0.clone(),
+                arguments: syn::PathArguments::None,
+            };
+            path_segments.push(path_segment);
+
+            let varible = gen_single_local_varible(name_ident, path_segments);
+            stmts.push(varible);
+            0
+        })
+        .collect::<Vec<u32>>();
+    stmts.extend(before_stmt);
 
     let body = syn::Expr::Block(syn::ExprBlock {
         attrs: vec![],
         label: None,
         block: syn::Block {
             brace_token: syn::token::Brace::default(),
-            stmts: stms,
+            stmts: stmts,
         },
     });
     let closure = syn::Expr::Closure(syn::ExprClosure {
@@ -64,34 +109,45 @@ pub fn gen_closure_block() {
         capture: None,
         or1_token: syn::token::Or::default(),
         or2_token: syn::token::Or::default(),
-        inputs: input,
+        inputs: inputs,
         output: syn::ReturnType::Default,
         body: Box::new(body),
     });
+    closure
 }
-pub fn gen_single_local_varible(input: Vec<(syn::Ident, syn::token::Colon2)>) -> syn::Stmt {
-    let mut input_clone = input.clone();
-    let index = input_clone.len() - 1;
-    let varible_name_ident = syn::Ident::new(
-        input_clone[index].0.to_string().to_lowercase().as_str(),
-        input_clone[index].0.span(),
-    );
+pub fn gen_single_local_varible(
+    name: syn::Ident,
+    segments: syn::punctuated::Punctuated<syn::PathSegment, syn::token::Colon2>,
+) -> syn::Stmt {
     let pat = syn::Pat::Ident(syn::PatIdent {
         attrs: vec![],
         by_ref: None,
         mutability: Some(syn::token::Mut::default()),
-        ident: varible_name_ident,
+        ident: name,
         subpat: None,
     });
-    let init=syn::Expr::MethodCall(syn::ExprMethodCall{
-        attrs:vec![],
-        method:gen_as_mut_method_call_path_segment()
+    let expr_path = syn::Path {
+        leading_colon: None,
+        segments,
+    };
+    let path = syn::Expr::Path(syn::ExprPath {
+        attrs: vec![],
+        qself: None,
+        path: expr_path,
     });
+    let init =
+       gen_unwrap_method_call_path_segment(
+           Box::new(
+            gen_as_mut_method_call_path_segment(Box::new(gen_borrow_mut_method_call_path_segment(
+                Box::new(gen_borrow_method_call_path_segment(Box::new(path))),
+            )))
+           )
+       );
     let semi = syn::Stmt::Local(syn::Local {
         attrs: vec![],
         let_token: syn::token::Let::default(),
         pat,
-        init,
+        init: Some((syn::token::Eq::default(), Box::new(init))),
         semi_token: syn::token::Semi::default(),
     });
     return semi;
@@ -99,7 +155,7 @@ pub fn gen_single_local_varible(input: Vec<(syn::Ident, syn::token::Colon2)>) ->
 
 pub fn gen_unwrap_method_call_path_segment(receiver: Box<syn::Expr>) -> syn::Expr {
     let method = syn::Ident::new("unwrap", proc_macro2::Span::call_site());
-    let mut args: syn::punctuated::Punctuated<syn::Expr, syn::token::Comma> =
+    let args: syn::punctuated::Punctuated<syn::Expr, syn::token::Comma> =
         syn::punctuated::Punctuated::default();
     let init_expr = syn::Expr::MethodCall(syn::ExprMethodCall {
         attrs: vec![], //[]
@@ -114,7 +170,7 @@ pub fn gen_unwrap_method_call_path_segment(receiver: Box<syn::Expr>) -> syn::Exp
 }
 pub fn gen_as_mut_method_call_path_segment(receiver: Box<syn::Expr>) -> syn::Expr {
     let method = syn::Ident::new("as_mut", proc_macro2::Span::call_site());
-    let mut args: syn::punctuated::Punctuated<syn::Expr, syn::token::Comma> =
+    let args: syn::punctuated::Punctuated<syn::Expr, syn::token::Comma> =
         syn::punctuated::Punctuated::default();
     let init_expr = syn::Expr::MethodCall(syn::ExprMethodCall {
         attrs: vec![], //[]
@@ -129,7 +185,7 @@ pub fn gen_as_mut_method_call_path_segment(receiver: Box<syn::Expr>) -> syn::Exp
 }
 pub fn gen_borrow_mut_method_call_path_segment(receiver: Box<syn::Expr>) -> syn::Expr {
     let method = syn::Ident::new("borrow_mut", proc_macro2::Span::call_site());
-    let mut args: syn::punctuated::Punctuated<syn::Expr, syn::token::Comma> =
+    let args: syn::punctuated::Punctuated<syn::Expr, syn::token::Comma> =
         syn::punctuated::Punctuated::default();
     let init_expr = syn::Expr::MethodCall(syn::ExprMethodCall {
         attrs: vec![], //[]
