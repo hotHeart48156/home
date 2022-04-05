@@ -241,3 +241,35 @@ for att in attributes:
 matlib.show()
 
 
+-----------------------------------------------------------------------------------------------------
+链接脚本相关
+
+项目创建之初，新建了.cargo/config.toml文件
+  里面有这样一句  "-C","link-arg=-Tlink.x",
+  cargo是项目管理器，rustc是真实的编译器，上面的一句话会作用到每一次rustc编译的时候
+  https://doc.rust-lang.org/cargo/reference/config.html
+  https://doc.rust-lang.org/rustc/codegen-options/index.html
+  link-arg制定了链接脚本
+  在c语言中由ld来把多个.o文件链接成exe，在rust中是lld
+  lld是ld的代替品，所以ld的命令他都是支持的
+  ld的-T参数指定的是链接脚本
+
+
+rust项目有一个build。rs，cargo在编译项目之前会先执行这个build。rs
+编译前的准备工作
+
+如果是依赖结构，cargo会先编译依赖项的build。rs,在编译那个项目
+https://github.com/rust-embedded/cortex-m/tree/master/cortex-m-rt
+我们以依赖了这个项目，所以先编译这个项目的build.rs文件，这个build.rs就是把link.x.in转化为link.x的脚本
+
+link.x文件会引用memory.x文件
+
+链接脚本
+
+如果是同一种cpu链接脚本脚本可以通用
+但是不同cpu不能通用。
+gcc的编译是把每一个c文件编译成一个.o文件，有多少个c文件，就有多少个.o文件
+
+rustc
+
+

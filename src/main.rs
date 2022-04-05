@@ -8,8 +8,7 @@ use core::panic::PanicInfo;
 use cortex_m::asm;
 use cortex_m_rt::entry;
 use home::bump_alloc::BumpPointerAlloc;
-// use utilities::{gpio, init, serial, time, wrap};
-// use utilities::wrap;
+use utilities::init;
 #[alloc_error_handler]
 fn on_oom(_layout: Layout) -> ! {
     asm::bkpt();
@@ -24,7 +23,7 @@ static HEAP: BumpPointerAlloc = BumpPointerAlloc {
 fn cortex_panic_handler(_panic: &PanicInfo) -> ! {
     loop {}
 }
-
+#[init(home(led,wifi_tx,wifi_rx,usb_tx,usb_rx,wifi,usb))]
 #[entry]
 fn main() -> ! {
     loop {}

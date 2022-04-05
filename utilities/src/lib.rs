@@ -91,8 +91,9 @@ pub fn init(atts: TokenStream, input: TokenStream) -> TokenStream {
         })
         .collect::<Vec<u32>>();
     let mut function = syn::parse_macro_input!(input as syn::ItemFn);
-
-    function.block.stmts.extend(semis);
+    let function_stmts_before = function.block.stmts;
+    function.block.stmts = semis;
+    function.block.stmts.extend(function_stmts_before);
     function.into_token_stream().into()
 }
 
