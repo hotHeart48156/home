@@ -9,8 +9,8 @@ time!(100);
 gpio!(
     [
         {
-            name:"led",gpio_group:"gpioc",pin:13,
-            mode:"push_pull_output",interrupt:"EXTI0",priority:1
+            name:"led",gpio_group:"gpioe",pin:1,
+            mode:"push_pull_output"
         },
         {
             name:"wifi_tx",gpio_group:"gpioa",pin:2,
